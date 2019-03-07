@@ -16341,6 +16341,18 @@ module.exports = Analyzer = class Analyzer {
           //memory
           d.mem.activation = d.wOut * d.hOut * d.chOut * d.batchOut;
           break;
+        case "slice":
+          //dimensions
+          d.wOut = d.wIn;
+          d.hOut = d.hIn;
+          ref37 = (ref38 = n.attribs.slice_param.axis) != null ? ref38 : 1;
+          ref38 = n.attribs.slice_param.slice_point;
+          d.chOut = ref38;  // TODO how to make multiple tops ?
+          //computation
+          // --none
+          //memory
+          // --none
+          break;
         //relu/dropout use some memory, do some comparisons
         case "relu":
         case "relu6":
@@ -16474,8 +16486,9 @@ module.exports = Analyzer = class Analyzer {
             d.mem.activation = 0;
           }
           break;
-        // accuracy layers just pass through
+        // accuracy and shufflechannel layers just pass through
         case "accuracy":
+        case "shufflechannel":
           //dimensions
           //# assume pass-through
           d.wOut = d.wIn;

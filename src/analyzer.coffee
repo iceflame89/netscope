@@ -222,6 +222,18 @@ module.exports =
                     #memory
                     d.mem.activation = d.wOut*d.hOut*d.chOut*d.batchOut
 
+                when "slice"
+                    #dimensions
+                    d.wOut = d.wIn
+                    d.hOut = d.hIn
+                    axis = n.attribs.slice_param.axis ? 1
+                    slice_point = n.attribs.slice_param.slice_point.slice(0)
+                    d.chOut = slice_point  # TODO how to make multiple tops ?
+                    #computation
+                    # --none
+                    #memory
+                    # --none
+
                 #relu/dropout use some memory, do some comparisons
                 when "relu", "relu6", "elu", "prelu", "dropout"
                     #dimensions
@@ -341,8 +353,8 @@ module.exports =
                     d.mem.activation = d.wOut*d.hOut*d.chOut*d.batchOut
                     d.mem.activation = 0 if isNaN(d.mem.activation)
 
-                # accuracy layers just pass through
-                when "accuracy"
+                # accuracy and shufflechannel layers just pass through
+                when "accuracy", "shufflechannel"
                     #dimensions
                     ## assume pass-through
                     d.wOut = d.wIn
