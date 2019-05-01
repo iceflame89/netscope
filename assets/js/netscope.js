@@ -16722,6 +16722,7 @@ module.exports = Analyzer = class Analyzer {
         case "elu":
         case "prelu":
         case "dropout":
+        case "sigmoid":
           //dimensions
           d.wIn = parent.wOut;
           d.hIn = parent.hOut;

@@ -254,7 +254,7 @@ module.exports =
                     # --none
 
                 #relu/dropout use some memory, do some comparisons
-                when "relu", "relu6", "elu", "prelu", "dropout"
+                when "relu", "relu6", "elu", "prelu", "dropout", "sigmoid"
                     #dimensions
                     d.wIn = parent.wOut
                     d.hIn = parent.hOut
