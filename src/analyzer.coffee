@@ -212,16 +212,30 @@ module.exports =
                     d.mem.activation = d.wOut*d.hOut*d.chOut*d.batchOut
 
                 when "concat"
+                    axis = n.attribs.concat_param?.axis ? 1
                     #dimensions
-                    d.wOut = d.wIn
-                    d.hOut = d.hIn
-                    # sum up channels from inputs
-                    d.chIn = 0
-                    d.chIn += p.analysis.chOut for p in n.parents
-                    d.chOut = d.chIn
-                    # check input dimensions
-                    failed = failed || (p.analysis.wOut != d.wIn || p.analysis.hOut != d.hIn) for p in n.parents
+                    if axis == 0
+                        d.wOut = d.wIn
+                        d.hOut = d.hIn
+                        d.chOut = d.chIn
+                        # sum up channels from inputs
+                        d.batchIn = 0
+                        d.batchIn += p.analysis.batchOut for p in n.parents
+                        d.batchOut = d.batchIn
+                        # check input dimensions
+                        failed = failed || (p.analysis.wOut != d.wIn || p.analysis.hOut != d.hIn || p.analysis.chIn != d.chIn) for p in n.parents
+                    else if axis == 1
+                        d.wOut = d.wIn
+                        d.hOut = d.hIn
+                        # sum up channels from inputs
+                        d.chIn = 0
+                        d.chIn += p.analysis.chOut for p in n.parents
+                        d.chOut = d.chIn
+                        # check input dimensions
+                        failed = failed || (p.analysis.wOut != d.wIn || p.analysis.hOut != d.hIn) for p in n.parents
+
                     window.onerror('CONCAT: input dimensions dont agree!') if failed
+
                     #computation
                     # --none
                     #memory
@@ -445,6 +459,23 @@ module.exports =
                     #computation
                     # --none (some shifting-around only)
                     #memory
+
+                when "proposal"
+                    num_region_proposals = n.attribs.proposal_param.rpn_post_nms_topn ? 100
+
+                    #output dimensions:
+                    d.wOut = d.hOut = 1
+                    d.chOut = 5 # rectangle (x1, y1, x2, y2) (and image batch index n)
+                    d.batchOut = num_region_proposals
+
+                    #computation
+                    d.comp.div  = (num_region_proposals*(num_region_proposals-1))/2
+                    d.comp.macc = d.batchIn *  (4+4) * 9*(d.wIn*d.hIn) + 2*(d.comp.div)
+                    d.comp.add  = d.batchIn * (8+2) * 9*(d.wIn*d.hIn) + 6*(d.comp.div)
+                    d.comp.comp = d.batchIn * (4+2) * 9*(d.wIn*d.hIn) + (9*(d.wIn*d.hIn))**2 + 7*(d.comp.div)
+                    d.comp.exp  = d.batchIn * (2) * 9*(d.wIn*d.hIn)
+                    #memory
+                    d.mem.activation = d.wOut*d.hOut*d.chOut*d.batchOut
 
                 when "python"
                     module = n.attribs.python_param.module

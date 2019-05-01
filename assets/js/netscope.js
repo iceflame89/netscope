@@ -16442,7 +16442,7 @@ module.exports = Analyzer = class Analyzer {
   constructor() {}
 
   analyze(net) {
-    var aspect_ratios, axis, ceil_mode, d, dilation, dim_in, failed, feature_map, group, has_bias, i, infered_dim, isglobal, j, k, kernel, kernel_h, kernel_w, key, l, layertype, len, len1, len2, len3, mem, mode, module, n, n_elements, newshape, num_inputs, num_ops, num_priors, num_region_proposals, numout, op, ops, p, pad_h, pad_w, params, parent, parent2, permutation, pooltype, power, prod_in_dims, prod_out_dims, ref, ref1, ref10, ref11, ref12, ref13, ref14, ref15, ref16, ref17, ref18, ref19, ref2, ref20, ref21, ref22, ref23, ref24, ref25, ref26, ref27, ref28, ref29, ref3, ref30, ref31, ref32, ref33, ref34, ref35, ref36, ref37, ref38, ref39, ref4, ref40, ref41, ref42, ref43, ref44, ref45, ref46, ref47, ref48, ref49, ref5, ref50, ref51, ref52, ref53, ref54, ref55, ref56, ref57, ref58, ref6, ref7, ref8, ref9, roi_proposals, scale, settings, shape, shift, size, slice_point, stride_h, stride_w, summary, trivial_layers, val;
+    var aspect_ratios, axis, ceil_mode, d, dilation, dim_in, failed, feature_map, group, has_bias, i, infered_dim, isglobal, j, k, kernel, kernel_h, kernel_w, key, l, layertype, len, len1, len2, len3, len4, len5, m, mem, mode, module, n, n_elements, newshape, num_inputs, num_ops, num_priors, num_region_proposals, numout, o, op, ops, p, pad_h, pad_w, params, parent, parent2, permutation, pooltype, power, prod_in_dims, prod_out_dims, ref, ref1, ref10, ref11, ref12, ref13, ref14, ref15, ref16, ref17, ref18, ref19, ref2, ref20, ref21, ref22, ref23, ref24, ref25, ref26, ref27, ref28, ref29, ref3, ref30, ref31, ref32, ref33, ref34, ref35, ref36, ref37, ref38, ref39, ref4, ref40, ref41, ref42, ref43, ref44, ref45, ref46, ref47, ref48, ref49, ref5, ref50, ref51, ref52, ref53, ref54, ref55, ref56, ref57, ref58, ref59, ref6, ref60, ref61, ref62, ref63, ref7, ref8, ref9, roi_proposals, scale, settings, shape, shift, size, slice_point, stride_h, stride_w, summary, trivial_layers, val;
     ref = net.sortTopologically();
     //# Add Input/Output Dimensions + Channels to each Node / Layer
     // shape.dim: (    N   x   K   x   W   x   H   )
@@ -16657,22 +16657,43 @@ module.exports = Analyzer = class Analyzer {
           d.mem.activation = d.wOut * d.hOut * d.chOut * d.batchOut;
           break;
         case "concat":
+          axis = (ref35 = (ref36 = n.attribs.concat_param) != null ? ref36.axis : void 0) != null ? ref35 : 1;
           //dimensions
-          d.wOut = d.wIn;
-          d.hOut = d.hIn;
-          // sum up channels from inputs
-          d.chIn = 0;
-          ref35 = n.parents;
-          for (j = 0, len1 = ref35.length; j < len1; j++) {
-            p = ref35[j];
-            d.chIn += p.analysis.chOut;
-          }
-          d.chOut = d.chIn;
-          ref36 = n.parents;
-          for (k = 0, len2 = ref36.length; k < len2; k++) {
-            p = ref36[k];
-            // check input dimensions
-            failed = failed || (p.analysis.wOut !== d.wIn || p.analysis.hOut !== d.hIn);
+          if (axis === 0) {
+            d.wOut = d.wIn;
+            d.hOut = d.hIn;
+            d.chOut = d.chIn;
+            // sum up channels from inputs
+            d.batchIn = 0;
+            ref37 = n.parents;
+            for (j = 0, len1 = ref37.length; j < len1; j++) {
+              p = ref37[j];
+              d.batchIn += p.analysis.batchOut;
+            }
+            d.batchOut = d.batchIn;
+            ref38 = n.parents;
+            for (k = 0, len2 = ref38.length; k < len2; k++) {
+              p = ref38[k];
+              // check input dimensions
+              failed = failed || (p.analysis.wOut !== d.wIn || p.analysis.hOut !== d.hIn || p.analysis.chIn !== d.chIn);
+            }
+          } else if (axis === 1) {
+            d.wOut = d.wIn;
+            d.hOut = d.hIn;
+            // sum up channels from inputs
+            d.chIn = 0;
+            ref39 = n.parents;
+            for (l = 0, len3 = ref39.length; l < len3; l++) {
+              p = ref39[l];
+              d.chIn += p.analysis.chOut;
+            }
+            d.chOut = d.chIn;
+            ref40 = n.parents;
+            for (m = 0, len4 = ref40.length; m < len4; m++) {
+              p = ref40[m];
+              // check input dimensions
+              failed = failed || (p.analysis.wOut !== d.wIn || p.analysis.hOut !== d.hIn);
+            }
           }
           if (failed) {
             window.onerror('CONCAT: input dimensions dont agree!');
@@ -16686,7 +16707,7 @@ module.exports = Analyzer = class Analyzer {
           //dimensions
           d.wOut = d.wIn;
           d.hOut = d.hIn;
-          axis = (ref37 = n.attribs.slice_param.axis) != null ? ref37 : 1;
+          axis = (ref41 = n.attribs.slice_param.axis) != null ? ref41 : 1;
           slice_point = n.attribs.slice_param.slice_point.slice(0);
           d.chOut = slice_point; // TODO how to make multiple tops ?
           break;
@@ -16742,16 +16763,16 @@ module.exports = Analyzer = class Analyzer {
           d.chOut = d.chIn;
           // check input dimensions
           failed = false;
-          ref38 = n.parents;
-          for (l = 0, len3 = ref38.length; l < len3; l++) {
-            p = ref38[l];
+          ref42 = n.parents;
+          for (o = 0, len5 = ref42.length; o < len5; o++) {
+            p = ref42[o];
             failed = failed || (d.wIn !== p.analysis.wOut) || (d.hIn !== p.analysis.hOut);
           }
           if (failed) {
             onerror('ELTWISE: input dimensions dont agree in ' + n.name);
           }
           //computation
-          op = (ref39 = (ref40 = n.eltwise_param) != null ? (ref41 = ref40.operation) != null ? ref41.toUpperCase() : void 0 : void 0) != null ? ref39 : 'SUM';
+          op = (ref43 = (ref44 = n.eltwise_param) != null ? (ref45 = ref44.operation) != null ? ref45.toUpperCase() : void 0 : void 0) != null ? ref43 : 'SUM';
           if (op === 'SUM') {
             d.comp.add = d.wIn * d.hIn * d.chIn * d.batchOut;
           } else if (op === 'MAX') {
@@ -16767,12 +16788,12 @@ module.exports = Analyzer = class Analyzer {
         case "deconvolution":
           //dimensions
           params = n.attribs.convolution_param;
-          kernel_w = (ref42 = params.kernel_w) != null ? ref42 : params.kernel_size;
-          kernel_h = (ref43 = params.kernel_h) != null ? ref43 : params.kernel_size;
-          stride_w = (ref44 = params.stride_w) != null ? ref44 : (ref45 = params.stride) != null ? ref45 : 1;
-          stride_h = (ref46 = params.stride_h) != null ? ref46 : (ref47 = params.stride) != null ? ref47 : 1;
-          pad_w = (ref48 = params.pad_w) != null ? ref48 : (ref49 = params.pad) != null ? ref49 : 0;
-          pad_h = (ref50 = params.pad_h) != null ? ref50 : (ref51 = params.pad) != null ? ref51 : 0;
+          kernel_w = (ref46 = params.kernel_w) != null ? ref46 : params.kernel_size;
+          kernel_h = (ref47 = params.kernel_h) != null ? ref47 : params.kernel_size;
+          stride_w = (ref48 = params.stride_w) != null ? ref48 : (ref49 = params.stride) != null ? ref49 : 1;
+          stride_h = (ref50 = params.stride_h) != null ? ref50 : (ref51 = params.stride) != null ? ref51 : 1;
+          pad_w = (ref52 = params.pad_w) != null ? ref52 : (ref53 = params.pad) != null ? ref53 : 0;
+          pad_h = (ref54 = params.pad_h) != null ? ref54 : (ref55 = params.pad) != null ? ref55 : 0;
           numout = params.num_output;
           d.wOut = stride_w * (d.wIn - 1) + kernel_w - 2 * pad_w;
           d.hOut = stride_h * (d.hIn - 1) + kernel_h - 2 * pad_h;
@@ -16811,10 +16832,10 @@ module.exports = Analyzer = class Analyzer {
         case "implicit":
           //dimensions
           //fix potentially undefined inputs
-          d.wIn = (ref52 = d.wIn) != null ? ref52 : "?";
-          d.hIn = (ref53 = d.hIn) != null ? ref53 : "?";
-          d.chIn = (ref54 = d.chIn) != null ? ref54 : "?";
-          d.batchIn = (ref55 = d.batchIn) != null ? ref55 : "?";
+          d.wIn = (ref56 = d.wIn) != null ? ref56 : "?";
+          d.hIn = (ref57 = d.hIn) != null ? ref57 : "?";
+          d.chIn = (ref58 = d.chIn) != null ? ref58 : "?";
+          d.batchIn = (ref59 = d.batchIn) != null ? ref59 : "?";
           //# assume pass-through
           d.wOut = d.wIn;
           d.hOut = d.hIn;
@@ -16845,9 +16866,9 @@ module.exports = Analyzer = class Analyzer {
         // power layers: computes outputs y = (shift + scale * x) ^ power
         case "power":
           params = n.attribs.power_param;
-          power = (ref56 = params.power) != null ? ref56 : 1;
-          scale = (ref57 = params.scale) != null ? ref57 : 1;
-          shift = (ref58 = params.shift) != null ? ref58 : 0;
+          power = (ref60 = params.power) != null ? ref60 : 1;
+          scale = (ref61 = params.scale) != null ? ref61 : 1;
+          shift = (ref62 = params.shift) != null ? ref62 : 0;
           //dimensions: pass-through
           d.wOut = d.wIn;
           d.hOut = d.hIn;
@@ -16930,6 +16951,21 @@ module.exports = Analyzer = class Analyzer {
         //computation
         // --none (some shifting-around only)
         //memory
+        case "proposal":
+          num_region_proposals = (ref63 = n.attribs.proposal_param.rpn_post_nms_topn) != null ? ref63 : 100;
+          //output dimensions:
+          d.wOut = d.hOut = 1;
+          d.chOut = 5; // rectangle (x1, y1, x2, y2) (and image batch index n)
+          d.batchOut = num_region_proposals;
+          //computation
+          d.comp.div = (num_region_proposals * (num_region_proposals - 1)) / 2;
+          d.comp.macc = d.batchIn * (4 + 4) * 9 * (d.wIn * d.hIn) + 2 * d.comp.div;
+          d.comp.add = d.batchIn * (8 + 2) * 9 * (d.wIn * d.hIn) + 6 * d.comp.div;
+          d.comp.comp = d.batchIn * (4 + 2) * 9 * (d.wIn * d.hIn) + (9 * (d.wIn * d.hIn)) ** 2 + 7 * d.comp.div;
+          d.comp.exp = d.batchIn * 2 * 9 * (d.wIn * d.hIn);
+          //memory
+          d.mem.activation = d.wOut * d.hOut * d.chOut * d.batchOut;
+          break;
         case "python":
           module = n.attribs.python_param.module;
           if (module === "rpn.proposal_layer") {
@@ -16987,11 +17023,11 @@ module.exports = Analyzer = class Analyzer {
         };
         // concat number of required operations into string
         ops = ((function() {
-          var ref59, results;
-          ref59 = d.comp;
+          var ref64, results;
+          ref64 = d.comp;
           results = [];
-          for (key in ref59) {
-            val = ref59[key];
+          for (key in ref64) {
+            val = ref64[key];
             if (val !== 0) {
               results.push(val + '⋅' + key);
             }
@@ -17004,11 +17040,11 @@ module.exports = Analyzer = class Analyzer {
         }
         // concat memory requirements into string
         mem = ((function() {
-          var ref59, results;
-          ref59 = d.mem;
+          var ref64, results;
+          ref64 = d.mem;
           results = [];
-          for (key in ref59) {
-            val = ref59[key];
+          for (key in ref64) {
+            val = ref64[key];
             if (val !== 0) {
               results.push(val + '⋅' + key);
             }
