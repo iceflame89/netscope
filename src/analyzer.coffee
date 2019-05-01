@@ -420,8 +420,16 @@ module.exports =
                 when "priorbox"
                     settings = n.attribs.prior_box_param
                     aspect_ratios = settings.aspect_ratio
-                    num_priors = settings.min_size * settings.aspect_ratio
-                    if settings.flip then num_priors *= 2
+                    min_size = settings.min_size ? []
+                    max_size = settings.max_size ? []
+                    num_min = if typeof(min_size) is 'number' then 1 else min_size.length
+                    num_max = if typeof(max_size) is 'number' then 1 else max_size.length
+
+                    flip = (settings.flip ? 'false') == 'true'
+                    n_ar = aspect_ratios.length
+                    if flip then n_ar *= 2
+                    n_ar += 1
+                    num_priors = num_min * n_ar + num_max 
 
                     d.batchOut = d.batchIn
                     d.chOut    = 2

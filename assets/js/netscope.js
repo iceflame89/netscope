@@ -16442,7 +16442,7 @@ module.exports = Analyzer = class Analyzer {
   constructor() {}
 
   analyze(net) {
-    var aspect_ratios, axis, ceil_mode, d, dilation, dim_in, failed, feature_map, group, has_bias, i, infered_dim, isglobal, j, k, kernel, kernel_h, kernel_w, key, l, layertype, len, len1, len2, len3, len4, len5, m, mem, mode, module, n, n_elements, newshape, num_inputs, num_ops, num_priors, num_region_proposals, numout, o, op, ops, p, pad_h, pad_w, params, parent, parent2, permutation, pooltype, power, prod_in_dims, prod_out_dims, ref, ref1, ref10, ref11, ref12, ref13, ref14, ref15, ref16, ref17, ref18, ref19, ref2, ref20, ref21, ref22, ref23, ref24, ref25, ref26, ref27, ref28, ref29, ref3, ref30, ref31, ref32, ref33, ref34, ref35, ref36, ref37, ref38, ref39, ref4, ref40, ref41, ref42, ref43, ref44, ref45, ref46, ref47, ref48, ref49, ref5, ref50, ref51, ref52, ref53, ref54, ref55, ref56, ref57, ref58, ref59, ref6, ref60, ref61, ref62, ref63, ref7, ref8, ref9, roi_proposals, scale, settings, shape, shift, size, slice_point, stride_h, stride_w, summary, trivial_layers, val;
+    var aspect_ratios, axis, ceil_mode, d, dilation, dim_in, failed, feature_map, flip, group, has_bias, i, infered_dim, isglobal, j, k, kernel, kernel_h, kernel_w, key, l, layertype, len, len1, len2, len3, len4, len5, m, max_size, mem, min_size, mode, module, n, n_ar, n_elements, newshape, num_inputs, num_max, num_min, num_ops, num_priors, num_region_proposals, numout, o, op, ops, p, pad_h, pad_w, params, parent, parent2, permutation, pooltype, power, prod_in_dims, prod_out_dims, ref, ref1, ref10, ref11, ref12, ref13, ref14, ref15, ref16, ref17, ref18, ref19, ref2, ref20, ref21, ref22, ref23, ref24, ref25, ref26, ref27, ref28, ref29, ref3, ref30, ref31, ref32, ref33, ref34, ref35, ref36, ref37, ref38, ref39, ref4, ref40, ref41, ref42, ref43, ref44, ref45, ref46, ref47, ref48, ref49, ref5, ref50, ref51, ref52, ref53, ref54, ref55, ref56, ref57, ref58, ref59, ref6, ref60, ref61, ref62, ref63, ref64, ref65, ref66, ref7, ref8, ref9, roi_proposals, scale, settings, shape, shift, size, slice_point, stride_h, stride_w, summary, trivial_layers, val;
     ref = net.sortTopologically();
     //# Add Input/Output Dimensions + Channels to each Node / Layer
     // shape.dim: (    N   x   K   x   W   x   H   )
@@ -16894,10 +16894,17 @@ module.exports = Analyzer = class Analyzer {
         case "priorbox":
           settings = n.attribs.prior_box_param;
           aspect_ratios = settings.aspect_ratio;
-          num_priors = settings.min_size * settings.aspect_ratio;
-          if (settings.flip) {
-            num_priors *= 2;
+          min_size = (ref63 = settings.min_size) != null ? ref63 : [];
+          max_size = (ref64 = settings.max_size) != null ? ref64 : [];
+          num_min = typeof min_size === 'number' ? 1 : min_size.length;
+          num_max = typeof max_size === 'number' ? 1 : max_size.length;
+          flip = ((ref65 = settings.flip) != null ? ref65 : 'false') === 'true';
+          n_ar = aspect_ratios.length;
+          if (flip) {
+            n_ar *= 2;
           }
+          n_ar += 1;
+          num_priors = num_min * n_ar + num_max;
           d.batchOut = d.batchIn;
           d.chOut = 2;
           d.hOut = 4;
@@ -16952,7 +16959,7 @@ module.exports = Analyzer = class Analyzer {
         // --none (some shifting-around only)
         //memory
         case "proposal":
-          num_region_proposals = (ref63 = n.attribs.proposal_param.rpn_post_nms_topn) != null ? ref63 : 100;
+          num_region_proposals = (ref66 = n.attribs.proposal_param.rpn_post_nms_topn) != null ? ref66 : 100;
           //output dimensions:
           d.wOut = d.hOut = 1;
           d.chOut = 5; // rectangle (x1, y1, x2, y2) (and image batch index n)
@@ -17023,11 +17030,11 @@ module.exports = Analyzer = class Analyzer {
         };
         // concat number of required operations into string
         ops = ((function() {
-          var ref64, results;
-          ref64 = d.comp;
+          var ref67, results;
+          ref67 = d.comp;
           results = [];
-          for (key in ref64) {
-            val = ref64[key];
+          for (key in ref67) {
+            val = ref67[key];
             if (val !== 0) {
               results.push(val + '⋅' + key);
             }
@@ -17040,11 +17047,11 @@ module.exports = Analyzer = class Analyzer {
         }
         // concat memory requirements into string
         mem = ((function() {
-          var ref64, results;
-          ref64 = d.mem;
+          var ref67, results;
+          ref67 = d.mem;
           results = [];
-          for (key in ref64) {
-            val = ref64[key];
+          for (key in ref67) {
+            val = ref67[key];
             if (val !== 0) {
               results.push(val + '⋅' + key);
             }
