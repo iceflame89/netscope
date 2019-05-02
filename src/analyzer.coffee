@@ -223,7 +223,7 @@ module.exports =
                         d.batchIn += p.analysis.batchOut for p in n.parents
                         d.batchOut = d.batchIn
                         # check input dimensions
-                        failed = failed || (p.analysis.wOut != d.wIn || p.analysis.hOut != d.hIn || p.analysis.chIn != d.chIn) for p in n.parents
+                        failed = failed || (p.analysis.wOut != d.wIn || p.analysis.hOut != d.hIn || p.analysis.chOut != d.chIn) for p in n.parents
                     else if axis == 1
                         d.wOut = d.wIn
                         d.hOut = d.hIn

@@ -16675,7 +16675,7 @@ module.exports = Analyzer = class Analyzer {
             for (k = 0, len2 = ref38.length; k < len2; k++) {
               p = ref38[k];
               // check input dimensions
-              failed = failed || (p.analysis.wOut !== d.wIn || p.analysis.hOut !== d.hIn || p.analysis.chIn !== d.chIn);
+              failed = failed || (p.analysis.wOut !== d.wIn || p.analysis.hOut !== d.hIn || p.analysis.chOut !== d.chIn);
             }
           } else if (axis === 1) {
             d.wOut = d.wIn;
