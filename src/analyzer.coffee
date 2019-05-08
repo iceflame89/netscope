@@ -253,6 +253,19 @@ module.exports =
                     #memory
                     # --none
 
+                when "roilevelmapping"
+                    #dimensions
+                    d.wOut = d.wIn
+                    d.hOut = d.hIn
+                    d.chOut = d.chIn
+                    topn = n.attribs.roi_level_mapping_param.fpn_post_nms_topn
+                    d.batchOut = topn 
+
+                    #computation
+                    # --none
+                    #memory
+                    # --none
+
                 #relu/dropout use some memory, do some comparisons
                 when "relu", "relu6", "elu", "prelu", "dropout", "sigmoid"
                     #dimensions
