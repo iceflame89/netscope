@@ -342,6 +342,18 @@ module.exports =
                     d.mem.param = kernel_w*kernel_h*d.chIn*d.chOut
                     d.mem.activation = d.wOut*d.hOut*d.chOut*d.batchOut
 
+                when "upsample"
+                    #dimensions
+                    params   = n.attribs.upsample_param
+                    scale = params.scale ? 2 
+                    d.wOut = d.wIn * scale
+                    d.hOut = d.hIn * scale
+                    d.chOut = d.chIn 
+                    d.batchOut = d.batchIn
+
+                    #computation
+                    #memory
+
                 when "crop"
                     #dimensions
                     ## crop to dims of 2nd parent
