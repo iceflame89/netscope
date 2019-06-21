@@ -556,6 +556,27 @@ module.exports =
                       #memory
                       d.mem.activation = d.wOut*d.hOut*d.chOut*d.batchOut
 
+                  when "roialign"
+                      # 2 parent layers: region proposals, feature vectors
+                      roi_proposals = if (n.parents[0].analysis.batchOut > 1) then n.parents[0].analysis else n.parents[1].analysis # parent with batchOut > 1 = region proposals
+                      feature_map   = if (n.parents[0].analysis.batchOut > 1) then n.parents[1].analysis else n.parents[0].analysis # features = the other one
+                      # Input / Output dimensions
+                      d.chIn = d.chOut = feature_map.chIn
+                      d.hIn = feature_map.hIn
+                      d.wIn = feature_map.wIn
+                      d.hOut  = n.attribs.roi_align_param.pooled_h
+                      d.wOut  = n.attribs.roi_align_param.pooled_w
+                      d.batchIn = d.batchOut = roi_proposals.batchOut
+                      #spatial_scale = n.attribs.roi_align_param.spatial_scale
+                      #computation
+                      d.comp.add = d.batchOut
+                      d.comp.div = d.batchOut
+                      d.comp.macc = d.batchOut
+                      d.comp.comp = d.batchOut * d.chIn * d.wIn * d.hIn
+                      #memory
+                      d.mem.activation = d.wOut*d.hOut*d.chOut*d.batchOut
+
+
                 else # unknown layer;  print error message;
                     onerror('Unknown Layer: '+layertype)
                     console.log(n)
